@@ -266,7 +266,7 @@ body {
 
 .game-container {
     max-width: 1200px;
-    margin: 0 auto;
+    margin: 18px auto 0 auto;
     background: #FFF8EB;
     border-radius: 20px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.2);
@@ -776,6 +776,10 @@ body {
 @media (max-width: 900px) {
     .container {
         margin: 20px;
+    }
+
+    .game-container {
+        margin: 12px 10px 0 10px;
     }
 
     .players-row {

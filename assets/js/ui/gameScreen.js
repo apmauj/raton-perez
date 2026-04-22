@@ -420,6 +420,19 @@ function resetCurrentMatch() {
     }
 }
 
+function confirmResetCurrentMatch() {
+    if (!matchState.players.length) {
+        return;
+    }
+
+    const shouldReset = window.confirm('¿Seguro que quieres reiniciar la partida actual?');
+    if (!shouldReset) {
+        return;
+    }
+
+    resetCurrentMatch();
+}
+
 function backToMenu() {
     clearPendingTurnMessage();
 
@@ -455,7 +468,7 @@ export function setupGameScreen() {
 
     gameElements.rollBtn.addEventListener('click', rollDice);
     gameElements.dice.addEventListener('click', rollDice);
-    gameElements.resetGameBtn.addEventListener('click', resetCurrentMatch);
+    gameElements.resetGameBtn.addEventListener('click', confirmResetCurrentMatch);
     gameElements.backToMenuBtn.addEventListener('click', backToMenu);
 
     matchState.listenersBound = true;
