@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego del Ratón Pérez</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(135deg, #87CEEB 0%, #E6F3FF 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .game-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            padding: 20px;
+        }
+        
+        .game-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .game-title {
+            font-size: 2.5em;
+            color: #4A90E2;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #F0F8FF;
+            border-radius: 10px;
+        }
+        
+        .player-info {
+            font-size: 1.2em;
+            color: #2C3E50;
+        }
+        
+        .dice-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .dice {
+            width: 80px;
+            height: 80px;
+            background: white;
+            border: 3px solid #4A90E2;
+            border-radius: 15px;
+            display: inline-block;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            margin: 0 10px;
+        }
+        
+        .dice:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        .dice.rolling {
+            animation: roll 0.6s ease-in-out;
+        }
+        
+        @keyframes roll {
+            0% { transform: rotate(0deg); }
+            50% { transform: rotate(180deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .dice-dot {
+            width: 12px;
+            height: 12px;
+            background: #4A90E2;
+            border-radius: 50%;
+            position: absolute;
+        }
+        
+        .roll-button {
+            padding: 15px 30px;
+            font-size: 1.2em;
+            background: #4A90E2;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .roll-button:hover {
+            background: #357ABD;
+            transform: translateY(-2px);
+        }
+        
+        .roll-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .board {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 5px;
+            background: #F8F9FA;
+            padding: 20px;
+            border-radius: 15px;
+            border: 3px solid #4A90E2;
+        }
+        
+        .cell {
+            width: 60px;
+            height: 60px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9em;
+            position: relative;
+            background: white;
+            transition: all 0.3s ease;
+        }
+        
+        .cell.start {
+            background: #90EE90;
+            border-color: #32CD32;
+        }
+        
+        .cell.finish {
+            background: #FFD700;
+            border-color: #FFA500;
+        }
+        
+        .cell.special {
+            background: #FFB6C1;
+            border-color: #FF69B4;
+        }
+        
+        .player {
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            z-index: 10;
+            animation: bounce 0.5s ease-in-out;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .message {
+            text-align: center;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+        
+        .message.win {
+            background: #90EE90;
+            color: #2E8B57;
+        }
+        
+        .message.info {
+            background: #E6F3FF;
+            color: #4A90E2;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <h1 class="game-title">🐭 Juego del Ratón Pérez 🦷</h1>
+            <p>¡Ayuda al Ratón Pérez a recoger todos los dientes!</p>
+        </div>
+        
+        <div class="game-info">
+            <div class="player-info">
+                <span>Jugador 1 - Posición: <span id="position">0</span>/50</span>
+            </div>
+            <div class="player-info">
+                <span>Último dado: <span id="lastRoll">-</span></span>
+            </div>
+        </div>
+        
+        <div class="dice-container">
+            <div class="dice" id="dice" onclick="rollDice()"></div>
+            <button class="roll-button" id="rollBtn" onclick="rollDice()">🎲 Lanzar Dado</button>
+        </div>
+        
+        <div id="message" class="message info">¡Haz clic en el dado para comenzar tu aventura!</div>
+        
+        <div class="board" id="board"></div>
+    </div>
+
+    <script>
+        let currentPosition = 0;
+        let isRolling = false;
+        let gameWon = false;
+        
+        // Crear el tablero
+        function createBoard() {
+            const board = document.getElementById('board');
+            board.innerHTML = '';
+            
+            for (let i = 0; i <= 50; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.id = `cell-${i}`;
+                
+                if (i === 0) {
+                    cell.classList.add('start');
+                    cell.innerHTML = `<div style="font-size: 0.8em;">🏠<br>INICIO</div>`;
+                } else if (i === 50) {
+                    cell.classList.add('finish');
+                    cell.innerHTML = `<div style="font-size: 0.8em;">🏆<br>META</div>`;
+                } else if (i % 10 === 0) {
+                    cell.classList.add('special');
+                    cell.innerHTML = `<div style="font-size: 0.8em;">🦷<br>${i}</div>`;
+                } else {
+                    cell.textContent = i;
+                }
+                
+                board.appendChild(cell);
+            }
+            
+            // Colocar jugador en posición inicial
+            placePlayer();
+        }
+        
+        // Crear jugador SVG
+        function createPlayer() {
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('width', '70');
+            svg.setAttribute('height', '70');
+            svg.setAttribute('viewBox', '0 0 70 70');
+            svg.classList.add('player');
+            
+            // Cuerpo del ratón
+            const body = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+            body.setAttribute('cx', '35');
+            body.setAttribute('cy', '45');
+            body.setAttribute('rx', '20');
+            body.setAttribute('ry', '15');
+            body.setAttribute('fill', '#D2691E');
+            body.setAttribute('stroke', '#8B4513');
+            body.setAttribute('stroke-width', '2');
+            
+            // Cabeza del ratón
+            const head = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            head.setAttribute('cx', '35');
+            head.setAttribute('cy', '25');
+            head.setAttribute('r', '15');
+            head.setAttribute('fill', '#DEB887');
+            head.setAttribute('stroke', '#8B4513');
+            head.setAttribute('stroke-width', '2');
+            
+            // Orejas
+            const ear1 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            ear1.setAttribute('cx', '25');
+            ear1.setAttribute('cy', '15');
+            ear1.setAttribute('r', '8');
+            ear1.setAttribute('fill', '#D2691E');
+            ear1.setAttribute('stroke', '#8B4513');
+            ear1.setAttribute('stroke-width', '2');
+            
+            const ear2 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            ear2.setAttribute('cx', '45');
+            ear2.setAttribute('cy', '15');
+            ear2.setAttribute('r', '8');
+            ear2.setAttribute('fill', '#D2691E');
+            ear2.setAttribute('stroke', '#8B4513');
+            ear2.setAttribute('stroke-width', '2');
+            
+            // Ojos
+            const eye1 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            eye1.setAttribute('cx', '30');
+            eye1.setAttribute('cy', '22');
+            eye1.setAttribute('r', '3');
+            eye1.setAttribute('fill', '#000');
+            
+            const eye2 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            eye2.setAttribute('cx', '40');
+            eye2.setAttribute('cy', '22');
+            eye2.setAttribute('r', '3');
+            eye2.setAttribute('fill', '#000');
+            
+            // Nariz
+            const nose = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            nose.setAttribute('cx', '35');
+            nose.setAttribute('cy', '27');
+            nose.setAttribute('r', '2');
+            nose.setAttribute('fill', '#FF69B4');
+            
+            // Cola
+            const tail = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            tail.setAttribute('d', 'M 15 50 Q 5 45 10 35');
+            tail.setAttribute('stroke', '#8B4513');
+            tail.setAttribute('stroke-width', '4');
+            tail.setAttribute('fill', 'none');
+            tail.setAttribute('stroke-linecap', 'round');
+            
+            // Diente en la boca
+            const tooth = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            tooth.setAttribute('x', '33');
+            tooth.setAttribute('y', '28');
+            tooth.setAttribute('width', '4');
+            tooth.setAttribute('height', '6');
+            tooth.setAttribute('fill', 'white');
+            tooth.setAttribute('stroke', '#ccc');
+            tooth.setAttribute('stroke-width', '1');
+            
+            svg.appendChild(tail);
+            svg.appendChild(body);
+            svg.appendChild(head);
+            svg.appendChild(ear1);
+            svg.appendChild(ear2);
+            svg.appendChild(eye1);
+            svg.appendChild(eye2);
+            svg.appendChild(nose);
+            svg.appendChild(tooth);
+            
+            return svg;
+        }
+        
+        // Colocar jugador en el tablero
+        function placePlayer() {
+            // Remover jugador anterior
+            const oldPlayer = document.querySelector('.player');
+            if (oldPlayer) {
+                oldPlayer.remove();
+            }
+            
+            // Crear y colocar nuevo jugador
+            const player = createPlayer();
+            const cell = document.getElementById(`cell-${currentPosition}`);
+            cell.appendChild(player);
+        }
+        
+        // Crear puntos del dado
+        function createDiceDots(number) {
+            const dice = document.getElementById('dice');
+            dice.innerHTML = '';
+            
+            const dotPositions = {
+                1: [[50, 50]],
+                2: [[25, 25], [75, 75]],
+                3: [[25, 25], [50, 50], [75, 75]],
+                4: [[25, 25], [75, 25], [25, 75], [75, 75]],
+                5: [[25, 25], [75, 25], [50, 50], [25, 75], [75, 75]],
+                6: [[25, 25], [75, 25], [25, 50], [75, 50], [25, 75], [75, 75]]
+            };
+            
+            const positions = dotPositions[number];
+            positions.forEach(([x, y]) => {
+                const dot = document.createElement('div');
+                dot.className = 'dice-dot';
+                dot.style.left = `${x}%`;
+                dot.style.top = `${y}%`;
+                dot.style.transform = 'translate(-50%, -50%)';
+                dice.appendChild(dot);
+            });
+        }
+        
+        // Lanzar dado
+        function rollDice() {
+            if (isRolling || gameWon) return;
+            
+            isRolling = true;
+            const dice = document.getElementById('dice');
+            const rollBtn = document.getElementById('rollBtn');
+            const message = document.getElementById('message');
+            
+            dice.classList.add('rolling');
+            rollBtn.disabled = true;
+            
+            // Animación de dados aleatorios
+            let rollCount = 0;
+            const rollInterval = setInterval(() => {
+                const randomNum = Math.floor(Math.random() * 6) + 1;
+                createDiceDots(randomNum);
+                rollCount++;
+                
+                if (rollCount >= 10) {
+                    clearInterval(rollInterval);
+                    
+                    // Resultado final
+                    const finalRoll = Math.floor(Math.random() * 6) + 1;
+                    createDiceDots(finalRoll);
+                    
+                    setTimeout(() => {
+                        dice.classList.remove('rolling');
+                        isRolling = false;
+                        rollBtn.disabled = false;
+                        
+                        movePlayer(finalRoll);
+                        document.getElementById('lastRoll').textContent = finalRoll;
+                    }, 200);
+                }
+            }, 60);
+        }
+        
+        // Mover jugador
+        function movePlayer(steps) {
+            const newPosition = Math.min(currentPosition + steps, 50);
+            currentPosition = newPosition;
+            
+            document.getElementById('position').textContent = currentPosition;
+            placePlayer();
+            
+            const message = document.getElementById('message');
+            
+            if (currentPosition === 50) {
+                message.className = 'message win';
+                message.textContent = '🎉 ¡Felicitaciones! El Ratón Pérez completó su misión y recolectó todos los dientes. ¡Ganaste!';
+                gameWon = true;
+            } else if (currentPosition % 10 === 0 && currentPosition > 0) {
+                message.className = 'message info';
+                message.textContent = `🦷 ¡Excelente! Encontraste un diente especial en la casilla ${currentPosition}`;
+            } else {
+                message.className = 'message info';
+                message.textContent = `🐭 El Ratón Pérez avanzó ${steps} casillas. ¡Sigue adelante!`;
+            }
+        }
+        
+        // Inicializar juego
+        createBoard();
+        createDiceDots(1);
+    </script>
+</body>
+</html>

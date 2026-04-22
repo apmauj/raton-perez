@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La Casita de los Ratones - Seleccion de Jugadores</title>
+    <link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+    <div class="container" id="menuScreen">
+        <div class="header">
+            <h1 class="header-title">🐭 LA CASITA DE LOS RATONES 🐭</h1>
+        </div>
+        <div class="runtime-hint" id="runtimeHint" style="display:none;"></div>
+        <div class="players-row" id="playersRow"></div>
+        <button class="start-btn" id="startBtn" disabled>COMENZAR JUEGO</button>
+    </div>
+
+    <div class="modal-bg" id="modalBg" style="display:none;">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+            <div class="modal-title" id="modalTitle">AGREGAR JUGADOR</div>
+            <label class="modal-label" for="playerNameInput">NOMBRE DEL JUGADOR</label>
+            <input type="text" id="playerNameInput" maxlength="12" autocomplete="off">
+            <div class="modal-label">ELIGE TU RATON</div>
+            <div class="raton-list" id="ratonList"></div>
+            <div class="error-msg" id="modalError"></div>
+            <div class="modal-actions">
+                <button class="modal-btn" id="addPlayerBtn">AGREGAR</button>
+                <button class="modal-btn cancel" id="cancelModalBtn">CANCELAR</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-screen" id="gameScreen">
+        <div class="game-container">
+            <div class="game-header">
+                <h1 class="game-title">🐭 EL JUEGO DEL RATON PEREZ 🦷</h1>
+                <p>AYUDA A LOS RATONES A RECOGER TODOS LOS DIENTES SIGUIENDO EL SENDERO SERPENTEANTE.</p>
+            </div>
+
+            <div class="players-dashboard" id="playersDashboard"></div>
+
+            <div class="game-controls">
+                <div class="dice-container">
+                    <div class="dice" id="dice"></div>
+                    <button class="game-button roll-button" id="rollBtn">🎲 LANZAR DADO</button>
+                </div>
+                <div class="player-info">
+                    <strong>ULTIMO DADO:</strong>
+                    <span id="lastRoll">-</span>
+                </div>
+                <button class="game-button reset-button" id="resetGameBtn">🔄 REINICIAR PARTIDA</button>
+            </div>
+
+            <div id="message" class="message info">ESPERANDO QUE EL PRIMER JUGADOR LANCE EL DADO.</div>
+
+            <div class="starting-area" id="startingArea">
+                <div class="starting-area-label">
+                    <span class="starting-area-icon" aria-hidden="true">🏠</span>
+                    <span class="starting-area-text">CASITA DE SALIDA</span>
+                </div>
+                <div class="starting-area-slot" id="startingAreaSlot1" aria-label="Jugador 1 en salida"></div>
+                <div class="starting-area-slot" id="startingAreaSlot2" aria-label="Jugador 2 en salida"></div>
+                <div class="starting-area-slot" id="startingAreaSlot3" aria-label="Jugador 3 en salida"></div>
+                <div class="starting-area-slot" id="startingAreaSlot4" aria-label="Jugador 4 en salida"></div>
+            </div>
+
+            <div class="board-container">
+                <div class="board" id="board"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="ranking-modal" id="rankingModal">
+        <div class="ranking-content">
+            <h2 class="ranking-title">🏆 RANKING FINAL</h2>
+            <div class="ranking-list" id="rankingList"></div>
+            <button class="back-to-menu-btn" id="backToMenuBtn">VOLVER AL MENU</button>
+        </div>
+    </div>
+
+    <script type="module" src="assets/js/main.js"></script>
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                const playersRow = document.getElementById('playersRow');
+                const runtimeHint = document.getElementById('runtimeHint');
+                if (!playersRow || !runtimeHint) {
+                    return;
+                }
+
+                const appReady = document.body.dataset.appReady === 'true';
+                if (!appReady && playersRow.children.length === 0) {
+                    runtimeHint.textContent = 'No se cargaron los modulos del juego. Usa un servidor local (Live Server en VS Code o python -m http.server 5500) y abre http://localhost:5500.';
+                    runtimeHint.style.display = 'block';
+                }
+            }, 1200);
+        });
+    </script>
+</body>
+</html>

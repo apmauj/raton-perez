@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego del Ratón Pérez</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(135deg, #87CEEB 0%, #E6F3FF 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            text-transform: uppercase;
+        }
+        
+        .game-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            padding: 20px;
+        }
+        
+        .game-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .game-title {
+            font-size: 2.5em;
+            color: #4A90E2;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #F0F8FF;
+            border-radius: 10px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .player-info {
+            font-size: 1.1em;
+            color: #2C3E50;
+        }
+        
+        .dice-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .dice {
+            width: 80px;
+            height: 80px;
+            background: white;
+            border: 3px solid #4A90E2;
+            border-radius: 15px;
+            display: inline-block;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            margin: 0 10px;
+        }
+        
+        .dice:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        .dice.rolling {
+            animation: roll 0.6s ease-in-out;
+        }
+        
+        @keyframes roll {
+            0% { transform: rotate(0deg); }
+            50% { transform: rotate(180deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .dice-dot {
+            width: 12px;
+            height: 12px;
+            background: #4A90E2;
+            border-radius: 50%;
+            position: absolute;
+        }
+        
+        .game-button {
+            padding: 12px 25px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+        
+        .roll-button {
+            background: #4A90E2;
+            color: white;
+        }
+        
+        .roll-button:hover {
+            background: #357ABD;
+            transform: translateY(-2px);
+        }
+        
+        .roll-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .reset-button {
+            background: #FF6B6B;
+            color: white;
+        }
+        
+        .reset-button:hover {
+            background: #E55555;
+            transform: translateY(-2px);
+        }
+        
+        .board-container {
+            position: relative;
+            background: #F8F9FA;
+            padding: 30px;
+            border-radius: 15px;
+            border: 3px solid #4A90E2;
+            margin-top: 20px;
+        }
+        
+        .board {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 8px;
+            position: relative;
+        }
+        
+        .cell {
+            width: 70px;
+            height: 70px;
+            border: 2px solid #ddd;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            font-weight: normal;
+            position: relative;
+            background: white;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        .cell.special, .cell.start, .cell.finish {
+            border-radius: 18px !important;
+        }
+        .cell-emoji {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2.2em;
+            z-index: 1;
+            opacity: 0.7;
+            pointer-events: none;
+        }
+        .cell-label {
+            position: relative;
+            z-index: 2;
+            font-size: 1em !important;
+            font-weight: normal;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+        .cell-label.bold {
+            font-weight: bold;
+        }
+        .cell > span {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            font-weight: normal;
+        }
+        
+        .cell.start {
+            background: #90EE90;
+            border-color: #32CD32;
+            border-radius: 10px;
+        }
+        
+        .cell.finish {
+            background: #FFD700;
+            border-color: #FFA500;
+            border-radius: 10px;
+        }
+        
+        .cell.special {
+            background: #FFB6C1;
+            border-color: #FF69B4;
+        }
+        
+        .starting-area {
+            position: static;
+            min-width: 220px;
+            min-height: 100px;
+            margin-bottom: 0;
+        }
+        
+        .path-line {
+            position: absolute;
+            background: #4A90E2;
+            z-index: 1;
+            opacity: 0.3;
+        }
+        
+        .player {
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            z-index: 10;
+            animation: bounce 0.5s ease-in-out;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+        }
+        
+        .message {
+            text-align: center;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+        
+        .message.win {
+            background: #90EE90;
+            color: #2E8B57;
+        }
+        
+        .message.info {
+            background: #E6F3FF;
+            color: #4A90E2;
+        }
+        
+        .grid-row {
+            display: contents;
+        }
+        
+        .grid-row.reverse {
+            direction: rtl;
+        }
+        
+        .grid-row.reverse .cell {
+            direction: ltr;
+        }
+        
+        .main-interaction-row {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 40px;
+            margin-bottom: 20px;
+        }
+        .dice-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        .reset-row {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .board {
+                grid-template-columns: repeat(8, 1fr);
+            }
+            
+            .cell {
+                width: 50px;
+                height: 50px;
+                font-size: 0.8em;
+            }
+            
+            .game-info {
+                flex-direction: column;
+                text-align: center;
+            }
+            .main-interaction-row {
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
+            }
+            .starting-area {
+                min-width: 0;
+                width: 100%;
+            }
+        }
+        .game-title, .game-header p, .player-info, .game-button, .message, .starting-area, .cell, .reset-button, .roll-button {
+            text-transform: uppercase;
+        }
+        .cell.selected-correct {
+            box-shadow: 0 0 0 4px #4AE24A;
+            border-color: #4AE24A;
+            animation: pop 0.3s;
+        }
+        .cell.selected-wrong {
+            box-shadow: 0 0 0 4px #FF6B6B;
+            border-color: #FF6B6B;
+            animation: shake 0.3s;
+        }
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+            100% { transform: scale(1); }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
+        .cell.special div {
+            font-size: 2em;
+            line-height: 1.1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .cell.start div, .cell.finish div {
+            font-size: 2em;
+            line-height: 1.1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <h1 class="game-title">🐭 EL JUEGO DEL RATÓN PÉREZ 🦷</h1>
+            <p>¡AYUDA AL RATÓN PÉREZ A RECOGER TODOS LOS DIENTES SIGUIENDO EL SENDERO SERPENTEANTE!</p>
+        </div>
+        
+        <div class="game-info">
+            <div class="player-info">
+                <span>POSICIÓN: <span id="position">EN LA CASITA</span></span>
+            </div>
+            <div class="player-info">
+                <span>ÚLTIMO DADO: <span id="lastRoll">-</span></span>
+            </div>
+            <div class="player-info">
+                <span>MOVIMIENTOS: <span id="moves">0</span></span>
+            </div>
+        </div>
+
+        <div class="main-interaction-row">
+            <div class="starting-area" id="startingArea">
+                🏠 CASITA DEL RATÓN PÉREZ
+            </div>
+            <div class="dice-section">
+                <div class="dice" id="dice" onclick="rollDice()"></div>
+                <button class="game-button roll-button" id="rollBtn" onclick="rollDice()">🎲 LANZAR DADO</button>
+            </div>
+        </div>
+        
+        <div id="message" class="message info">¡EL RATÓN PÉREZ ESTÁ EN SU CASITA ESPERANDO COMENZAR LA AVENTURA!</div>
+        
+        <div class="board-container">
+            <div class="board" id="board"></div>
+        </div>
+        <div class="reset-row">
+            <button class="game-button reset-button" onclick="resetGame()">🔄 REINICIAR JUEGO</button>
+        </div>
+    </div>
+
+    <script>
+        let currentPosition = 0; // 0 = fuera del tablero
+        let isRolling = false;
+        let gameWon = false;
+        let totalMoves = 0;
+        let expectedTarget = null;
+        let awaitingAnswer = false;
+        let goldTeeth = 0;
+        let shinyCoins = 0;
+        let countdownInterval = null;
+        let countdownValue = 30;
+        
+        // Crear el tablero serpenteante
+        function createBoard() {
+            const board = document.getElementById('board');
+            board.innerHTML = '';
+            
+            // Crear 5 filas de 10 casillas cada una
+            for (let row = 0; row < 5; row++) {
+                for (let col = 0; col < 10; col++) {
+                    let cellNumber;
+                    
+                    // Calcular número de casilla según patrón serpenteante
+                    if (row % 2 === 0) {
+                        // Filas pares: izquierda a derecha
+                        cellNumber = row * 10 + col + 1;
+                    } else {
+                        // Filas impares: derecha a izquierda
+                        cellNumber = row * 10 + (9 - col) + 1;
+                    }
+                    
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.id = `cell-${cellNumber}`;
+                    cell.style.gridRow = row + 1;
+                    cell.style.gridColumn = col + 1;
+                    
+                    if (cellNumber === 1) {
+                        cell.classList.add('start');
+                        cell.innerHTML = `<span class='cell-emoji'>🚪</span><span class='cell-label${cellNumber % 5 === 0 ? ' bold' : ''}'>1</span>`;
+                    } else if (cellNumber === 50) {
+                        cell.classList.add('finish');
+                        cell.innerHTML = `<span class='cell-emoji'>🏆</span><span class='cell-label${cellNumber % 5 === 0 ? ' bold' : ''}'>50</span>`;
+                    } else if (cellNumber % 10 === 0) {
+                        cell.classList.add('special');
+                        cell.innerHTML = `<span class='cell-emoji'>🦷</span><span class='cell-label bold'>${cellNumber}</span>`;
+                    } else if (cellNumber % 5 === 0) {
+                        cell.classList.add('special');
+                        cell.innerHTML = `<span class='cell-emoji'>✨</span><span class='cell-label bold'>${cellNumber}</span>`;
+                    } else {
+                        cell.innerHTML = `<span class='cell-label'>${cellNumber}</span>`;
+                    }
+                    
+                    // Añadir interacción educativa
+                    cell.onclick = () => {
+                        if (!awaitingAnswer) return;
+                        if (cellNumber === expectedTarget) {
+                            cell.classList.add('selected-correct');
+                            setTimeout(() => {
+                                cell.classList.remove('selected-correct');
+                                movePlayerEducational(cellNumber - currentPosition);
+                            }, 500);
+                        } else {
+                            cell.classList.add('selected-wrong');
+                            setTimeout(() => {
+                                cell.classList.remove('selected-wrong');
+                            }, 500);
+                        }
+                    };
+                    board.appendChild(cell);
+                }
+            }
+            placePlayer();
+        }
+        
+        // Crear jugador SVG (versión mejorada)
+        function createPlayer() {
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('width', '90');
+            svg.setAttribute('height', '90');
+            svg.setAttribute('viewBox', '0 0 90 90');
+            svg.classList.add('player');
+            
+            // Sombra
+            const shadow = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+            shadow.setAttribute('cx', '45');
+            shadow.setAttribute('cy', '80');
+            shadow.setAttribute('rx', '25');
+            shadow.setAttribute('ry', '5');
+            shadow.setAttribute('fill', 'rgba(0,0,0,0.2)');
+            
+            // Cola
+            const tail = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            tail.setAttribute('d', 'M 15 55 Q 5 45 15 35 Q 25 25 15 15');
+            tail.setAttribute('stroke', '#8B4513');
+            tail.setAttribute('stroke-width', '5');
+            tail.setAttribute('fill', 'none');
+            tail.setAttribute('stroke-linecap', 'round');
+            
+            // Cuerpo del ratón
+            const body = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+            body.setAttribute('cx', '45');
+            body.setAttribute('cy', '55');
+            body.setAttribute('rx', '22');
+            body.setAttribute('ry', '18');
+            body.setAttribute('fill', '#DEB887');
+            body.setAttribute('stroke', '#8B4513');
+            body.setAttribute('stroke-width', '2');
+            
+            // Cabeza del ratón
+            const head = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+            head.setAttribute('cx', '45');
+            head.setAttribute('cy', '30');
+            head.setAttribute('rx', '18');
+            head.setAttribute('ry', '16');
+            head.setAttribute('fill', '#F5DEB3');
+            head.setAttribute('stroke', '#8B4513');
+            head.setAttribute('stroke-width', '2');
+            
+            // Orejas
+            const ear1 = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+            ear1.setAttribute('cx', '32');
+            ear1.setAttribute('cy', '18');
+            ear1.setAttribute('rx', '8');
+            ear1.setAttribute('ry', '12');
+            ear1.setAttribute('fill', '#DEB887');
+            ear1.setAttribute('stroke', '#8B4513');
+            ear1.setAttribute('stroke-width', '2');
+            
+            const ear2 = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+            ear2.setAttribute('cx', '58');
+            ear2.setAttribute('cy', '18');
+            ear2.setAttribute('rx', '8');
+            ear2.setAttribute('ry', '12');
+            ear2.setAttribute('fill', '#DEB887');
+            ear2.setAttribute('stroke', '#8B4513');
+            ear2.setAttribute('stroke-width', '2');
+            
+            // Interior de orejas
+            const innerEar1 = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+            innerEar1.setAttribute('cx', '32');
+            innerEar1.setAttribute('cy', '18');
+            innerEar1.setAttribute('rx', '4');
+            innerEar1.setAttribute('ry', '6');
+            innerEar1.setAttribute('fill', '#FFB6C1');
+            
+            const innerEar2 = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+            innerEar2.setAttribute('cx', '58');
+            innerEar2.setAttribute('cy', '18');
+            innerEar2.setAttribute('rx', '4');
+            innerEar2.setAttribute('ry', '6');
+            innerEar2.setAttribute('fill', '#FFB6C1');
+            
+            // Ojos
+            const eye1 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            eye1.setAttribute('cx', '38');
+            eye1.setAttribute('cy', '26');
+            eye1.setAttribute('r', '4');
+            eye1.setAttribute('fill', '#000');
+            
+            const eye2 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            eye2.setAttribute('cx', '52');
+            eye2.setAttribute('cy', '26');
+            eye2.setAttribute('r', '4');
+            eye2.setAttribute('fill', '#000');
+            
+            // Brillos en los ojos
+            const eyeShine1 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            eyeShine1.setAttribute('cx', '40');
+            eyeShine1.setAttribute('cy', '24');
+            eyeShine1.setAttribute('r', '1.5');
+            eyeShine1.setAttribute('fill', 'white');
+            
+            const eyeShine2 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            eyeShine2.setAttribute('cx', '54');
+            eyeShine2.setAttribute('cy', '24');
+            eyeShine2.setAttribute('r', '1.5');
+            eyeShine2.setAttribute('fill', 'white');
+            
+            // Hocico
+            const snout = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+            snout.setAttribute('cx', '45');
+            snout.setAttribute('cy', '35');
+            snout.setAttribute('rx', '6');
+            snout.setAttribute('ry', '4');
+            snout.setAttribute('fill', '#FFB6C1');
+            
+            // Nariz
+            const nose = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+            nose.setAttribute('cx', '45');
+            nose.setAttribute('cy', '33');
+            nose.setAttribute('rx', '2');
+            nose.setAttribute('ry', '1.5');
+            nose.setAttribute('fill', '#FF69B4');
+            
+            // Bigotes
+            const whisker1 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            whisker1.setAttribute('x1', '25');
+            whisker1.setAttribute('y1', '32');
+            whisker1.setAttribute('x2', '35');
+            whisker1.setAttribute('y2', '34');
+            whisker1.setAttribute('stroke', '#8B4513');
+            whisker1.setAttribute('stroke-width', '1');
+            
+            const whisker2 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            whisker2.setAttribute('x1', '55');
+            whisker2.setAttribute('y1', '34');
+            whisker2.setAttribute('x2', '65');
+            whisker2.setAttribute('y2', '32');
+            whisker2.setAttribute('stroke', '#8B4513');
+            whisker2.setAttribute('stroke-width', '1');
+            
+            // Diente en la boca
+            const tooth = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            tooth.setAttribute('x', '43');
+            tooth.setAttribute('y', '36');
+            tooth.setAttribute('width', '4');
+            tooth.setAttribute('height', '6');
+            tooth.setAttribute('fill', 'white');
+            tooth.setAttribute('stroke', '#ccc');
+            tooth.setAttribute('stroke-width', '1');
+            tooth.setAttribute('rx', '1');
+            
+            // Patas
+            const paw1 = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+            paw1.setAttribute('cx', '30');
+            paw1.setAttribute('cy', '70');
+            paw1.setAttribute('rx', '6');
+            paw1.setAttribute('ry', '4');
+            paw1.setAttribute('fill', '#DEB887');
+            paw1.setAttribute('stroke', '#8B4513');
+            paw1.setAttribute('stroke-width', '1');
+            
+            const paw2 = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+            paw2.setAttribute('cx', '60');
+            paw2.setAttribute('cy', '70');
+            paw2.setAttribute('rx', '6');
+            paw2.setAttribute('ry', '4');
+            paw2.setAttribute('fill', '#DEB887');
+            paw2.setAttribute('stroke', '#8B4513');
+            paw2.setAttribute('stroke-width', '1');
+            
+            // Ensamblar SVG
+            svg.appendChild(shadow);
+            svg.appendChild(tail);
+            svg.appendChild(body);
+            svg.appendChild(head);
+            svg.appendChild(ear1);
+            svg.appendChild(ear2);
+            svg.appendChild(innerEar1);
+            svg.appendChild(innerEar2);
+            svg.appendChild(eye1);
+            svg.appendChild(eye2);
+            svg.appendChild(eyeShine1);
+            svg.appendChild(eyeShine2);
+            svg.appendChild(snout);
+            svg.appendChild(nose);
+            svg.appendChild(whisker1);
+            svg.appendChild(whisker2);
+            svg.appendChild(tooth);
+            svg.appendChild(paw1);
+            svg.appendChild(paw2);
+            
+            return svg;
+        }
+        
+        // Colocar jugador en el tablero
+        function placePlayer() {
+            // Remover jugador anterior
+            const oldPlayer = document.querySelector('.player');
+            if (oldPlayer) {
+                oldPlayer.remove();
+            }
+            
+            // Crear jugador
+            const player = createPlayer();
+            
+            if (currentPosition === 0) {
+                // Colocar en área de inicio
+                const startingArea = document.getElementById('startingArea');
+                startingArea.appendChild(player);
+                player.style.position = 'relative';
+                player.style.top = '10px';
+                player.style.left = '0px';
+            } else {
+                // Colocar en celda correspondiente
+                const cell = document.getElementById(`cell-${currentPosition}`);
+                if (cell) {
+                    cell.appendChild(player);
+                }
+            }
+        }
+        
+        // Crear puntos del dado
+        function createDiceDots(number) {
+            const dice = document.getElementById('dice');
+            dice.innerHTML = '';
+            
+            const dotPositions = {
+                1: [[50, 50]],
+                2: [[25, 25], [75, 75]],
+                3: [[25, 25], [50, 50], [75, 75]],
+                4: [[25, 25], [75, 25], [25, 75], [75, 75]],
+                5: [[25, 25], [75, 25], [50, 50], [25, 75], [75, 75]],
+                6: [[25, 25], [75, 25], [25, 50], [75, 50], [25, 75], [75, 75]]
+            };
+            
+            const positions = dotPositions[number];
+            positions.forEach(([x, y]) => {
+                const dot = document.createElement('div');
+                dot.className = 'dice-dot';
+                dot.style.left = `${x}%`;
+                dot.style.top = `${y}%`;
+                dot.style.transform = 'translate(-50%, -50%)';
+                dice.appendChild(dot);
+            });
+        }
+        
+        // Lanzar dado (educativo)
+        function rollDice() {
+            if (isRolling || gameWon || awaitingAnswer) return;
+            isRolling = true;
+            const dice = document.getElementById('dice');
+            const rollBtn = document.getElementById('rollBtn');
+            dice.classList.add('rolling');
+            rollBtn.disabled = true;
+            let rollCount = 0;
+            const rollInterval = setInterval(() => {
+                const randomNum = Math.floor(Math.random() * 6) + 1;
+                createDiceDots(randomNum);
+                rollCount++;
+                if (rollCount >= 10) {
+                    clearInterval(rollInterval);
+                    const finalRoll = Math.floor(Math.random() * 6) + 1;
+                    createDiceDots(finalRoll);
+                    setTimeout(() => {
+                        dice.classList.remove('rolling');
+                        isRolling = false;
+                        // Nueva lógica educativa
+                        expectedTarget = Math.min(currentPosition + finalRoll, 50);
+                        awaitingAnswer = true;
+                        document.getElementById('lastRoll').textContent = finalRoll;
+                        document.getElementById('message').className = 'message info';
+                        document.getElementById('message').textContent = `¿A QUÉ CASILLA DEBE AVANZAR EL RATÓN? TOCA LA CASILLA CORRECTA.`;
+                    }, 300);
+                }
+            }, 80);
+        }
+
+        // Movimiento educativo
+        function movePlayerEducational(steps) {
+            const newPosition = Math.min(currentPosition + steps, 50);
+            // Premios
+            if (newPosition % 10 === 0 && newPosition > 0) goldTeeth++;
+            else if (newPosition % 5 === 0 && newPosition > 0) shinyCoins++;
+            currentPosition = newPosition;
+            totalMoves++;
+            document.getElementById('moves').textContent = totalMoves;
+            if (currentPosition === 0) {
+                document.getElementById('position').textContent = 'EN LA CASITA';
+            } else {
+                document.getElementById('position').textContent = `${currentPosition}/50`;
+            }
+            placePlayer();
+            const message = document.getElementById('message');
+            if (currentPosition === 50) {
+                message.className = 'message win';
+                showVictorySummary();
+                gameWon = true;
+            } else if (currentPosition % 10 === 0 && currentPosition > 0) {
+                message.className = 'message info';
+                message.textContent = `🦷 ¡FANTÁSTICO! EL RATÓN PÉREZ ENCONTRÓ UN DIENTE DE ORO EN LA CASILLA ${currentPosition}`;
+            } else if (currentPosition % 5 === 0 && currentPosition > 0) {
+                message.className = 'message info';
+                message.textContent = `✨ ¡EXCELENTE! CASILLA ESPECIAL ${currentPosition}. EL RATÓN PÉREZ ENCONTRÓ MONEDAS BRILLANTES`;
+            } else if (currentPosition > 0) {
+                message.className = 'message win';
+                message.textContent = `✔️ ¡MUY BIEN! EL RATÓN AVANZÓ A LA CASILLA ${currentPosition}`;
+            }
+            awaitingAnswer = false;
+            expectedTarget = null;
+            document.getElementById('rollBtn').disabled = false;
+        }
+
+        function showVictorySummary() {
+            let seconds = 30;
+            const message = document.getElementById('message');
+            function updateMessage() {
+                message.innerHTML = `¡MISIÓN CUMPLIDA!<br><br>PREMIOS RECOLECTADOS:<br>🦷 DIENTES DE ORO: <b>${goldTeeth}</b><br>✨ MONEDAS BRILLANTES: <b>${shinyCoins}</b><br><br>MOVIMIENTOS: <b>${totalMoves}</b><br><br>¡SIGUE JUGANDO Y APRENDIENDO!<br><br>REINICIO AUTOMÁTICO EN <b>${seconds}</b> SEGUNDOS...`;
+            }
+            updateMessage();
+            countdownInterval = setInterval(() => {
+                seconds--;
+                if (seconds > 0) {
+                    updateMessage();
+                } else {
+                    clearInterval(countdownInterval);
+                    resetGame();
+                }
+            }, 1000);
+        }
+
+        // Reiniciar juego
+        function resetGame() {
+            currentPosition = 0;
+            totalMoves = 0;
+            gameWon = false;
+            isRolling = false;
+            expectedTarget = null;
+            awaitingAnswer = false;
+            goldTeeth = 0;
+            shinyCoins = 0;
+            if (countdownInterval) clearInterval(countdownInterval);
+            document.getElementById('position').textContent = 'EN LA CASITA';
+            document.getElementById('lastRoll').textContent = '-';
+            document.getElementById('moves').textContent = '0';
+            document.getElementById('rollBtn').disabled = false;
+            const message = document.getElementById('message');
+            message.className = 'message info';
+            message.textContent = '🏠 EL RATÓN PÉREZ REGRESÓ A SU CASITA Y ESTÁ LISTO PARA UNA NUEVA AVENTURA';
+            placePlayer();
+        }
+        
+        // Inicializar juego
+        createBoard();
+        createDiceDots(1);
+    </script>
+</body>
+</html>
