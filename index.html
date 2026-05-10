@@ -116,7 +116,9 @@
                 qrModalBg.style.display = 'flex';
                 const qrcodeDiv = document.getElementById('qrcode');
                 if (!qrcodeDiv.hasChildNodes()) {
-                    QRCode.toCanvas(qrcodeDiv, window.location.href, { width: 200 }, function (error) {
+                    const canvas = document.createElement('canvas');
+                    qrcodeDiv.appendChild(canvas);
+                    QRCode.toCanvas(canvas, window.location.href, { width: 200 }, function (error) {
                         if (error) console.error(error);
                     });
                 }
