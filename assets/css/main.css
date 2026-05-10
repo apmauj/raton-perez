@@ -1,9 +1,10 @@
 body {
-    font-family: 'Comic Sans MS', cursive, sans-serif;
+    font-family: 'Arial', sans-serif;
     background: linear-gradient(135deg, #87CEEB 0%, #E6F3FF 100%);
     margin: 0;
     padding: 0;
     min-height: 100vh;
+    text-transform: uppercase;
 }
 
 .container {
@@ -46,6 +47,7 @@ body {
     align-items: flex-start;
     gap: 30px;
     margin-bottom: 30px;
+    flex-wrap: wrap;
 }
 
 .player-slot {
@@ -770,6 +772,60 @@ body {
 
 .qr-close-btn:hover {
     background: #357ABD;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .container {
+        max-width: 95%;
+        margin: 20px auto;
+        padding: 20px 15px 30px 15px;
+    }
+
+    .header-title {
+        font-size: 1.8em;
+    }
+
+    .players-row {
+        gap: 15px;
+    }
+
+    .player-slot {
+        width: 100px;
+        height: 100px;
+    }
+
+    .player-avatar {
+        width: 70px;
+        height: 70px;
+    }
+
+    .player-name {
+        font-size: 0.9em;
+    }
+
+    .remove-btn {
+        width: 22px;
+        height: 22px;
+        font-size: 1.1em;
+    }
+
+    .start-btn {
+        font-size: 1em;
+        padding: 12px 20px;
+    }
+
+    .game-title {
+        font-size: 1.5em;
+    }
+
+    .message {
+        font-size: 1em;
+    }
+
+    .ranking-title {
+        font-size: 1.5em;
+    }
 }
 
 .message.win {
