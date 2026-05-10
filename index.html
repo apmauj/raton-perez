@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>La Casita de los Ratones - Seleccion de Jugadores</title>
     <link rel="stylesheet" href="assets/css/main.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"></script>
 </head>
 <body>
     <div class="container" id="menuScreen">
@@ -79,6 +80,16 @@
         </div>
     </div>
 
+    <div class="qr-float-btn" id="qrFloatBtn" title="Mostrar QR del juego">📱</div>
+
+    <div class="qr-modal-bg" id="qrModalBg" style="display:none;">
+        <div class="qr-modal">
+            <div class="qr-title">Escanea para compartir el juego</div>
+            <div id="qrcode"></div>
+            <button class="qr-close-btn" id="closeQrBtn">Cerrar</button>
+        </div>
+    </div>
+
     <script type="module" src="assets/js/main.js"></script>
     <script>
         window.addEventListener('DOMContentLoaded', () => {
@@ -95,6 +106,32 @@
                     runtimeHint.style.display = 'block';
                 }
             }, 1200);
+
+            // QR Code functionality
+            const qrFloatBtn = document.getElementById('qrFloatBtn');
+            const qrModalBg = document.getElementById('qrModalBg');
+            const closeQrBtn = document.getElementById('closeQrBtn');
+
+            qrFloatBtn.addEventListener('click', () => {
+                qrModalBg.style.display = 'flex';
+                const qrcodeDiv = document.getElementById('qrcode');
+                if (!qrcodeDiv.hasChildNodes()) {
+                    QRCode.toCanvas(qrcodeDiv, window.location.href, { width: 200 }, function (error) {
+                        if (error) console.error(error);
+                    });
+                }
+            });
+
+            closeQrBtn.addEventListener('click', () => {
+                qrModalBg.style.display = 'none';
+            });
+
+            // Close modal when clicking outside
+            qrModalBg.addEventListener('click', (e) => {
+                if (e.target === qrModalBg) {
+                    qrModalBg.style.display = 'none';
+                }
+            });
         });
     </script>
 </body>
